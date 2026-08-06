@@ -1,7 +1,9 @@
 {
   "name": "Remix: رفيق الثانوية",
   "description": "رفيق دراسة ذكي وتفاعلي لطلاب الثانوية العامة يساعدهم على تنظيم الوقت، تتبع الإنجازات بومودورو، والحصول على الدعم النفسي والتحفيز المستمر.",
-  "requestFramePermissions": [],
+  "requestFramePermissions": [
+    "microphone"
+  ],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
   ]

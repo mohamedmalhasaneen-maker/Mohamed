@@ -10,6 +10,10 @@ export interface StudentProfile {
   targetScore: number;
   studyTime: 'morning' | 'evening' | '';
   isConfigured: boolean;
+  title?: string;
+  examDate?: string;
+  avatarUrl?: string;
+  notificationsEnabled?: boolean;
 }
 
 export interface Task {
@@ -48,3 +52,29 @@ export interface StudyChallenge {
   category: 'pomodoro' | 'tasks' | 'vent' | 'continuous';
   isClaimed: boolean;
 }
+
+export interface ActivityLog {
+  id: string;
+  type: 'auth' | 'task_complete' | 'task_add' | 'pomodoro' | 'badge_unlock' | 'chat';
+  description: string;
+  timestamp: string;
+}
+
+export interface Dua {
+  id: string;
+  category: string;
+  text: string;
+  source?: string;
+}
+
+export interface HeroNote {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  createdAt: string;
+  isPinned: boolean;
+  color: string;
+}
+
+
