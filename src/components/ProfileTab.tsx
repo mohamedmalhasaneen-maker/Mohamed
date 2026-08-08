@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { EGYPTIAN_GOVERNORATES, POPULAR_COLLEGES_BY_BRANCH, getCollegesForBranchAndGov } from '../data/colleges';
+import { registerOrUpdateUserInDB } from '../utils/userRegistry';
 
 const WhatsAppIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg className={`${className} fill-current`} viewBox="0 0 24 24">
@@ -105,6 +106,7 @@ export default function ProfileTab({ currentProfile, onSave }: ProfileTabProps) 
     }
 
     setError('');
+    registerOrUpdateUserInDB(profile.name.trim(), profile.branch, profile.dreamCollege, 0, 0);
     onSave(profile);
     setSuccessMsg('تم حفظ وتحديث ملفك الشخصي وخطتك بنجاح يا بطل! ✨🎓');
     setTimeout(() => {

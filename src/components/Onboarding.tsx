@@ -3,6 +3,7 @@ import { StudentProfile } from '../types';
 import { BookOpen, Award, Sparkles, Clock, MapPin, GraduationCap, ChevronDown, Camera, Upload, User } from 'lucide-react';
 import { motion } from 'motion/react';
 import { EGYPTIAN_GOVERNORATES, POPULAR_COLLEGES_BY_BRANCH, getCollegesForBranchAndGov } from '../data/colleges';
+import { registerOrUpdateUserInDB } from '../utils/userRegistry';
 
 const AVATAR_PRESETS = [
   { id: 'pres-1', label: 'طالب متفوق', emoji: '👨‍🎓', url: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100"><rect width="100" height="100" rx="50" fill="%23FEF3C7"/><text y="70" x="22" font-size="55">👨‍🎓</text></svg>' },
@@ -90,6 +91,8 @@ export default function Onboarding({ onComplete, initialProfile }: OnboardingPro
     }
 
     setError('');
+    registerOrUpdateUserInDB(profile.name.trim(), profile.branch, profile.dreamCollege, 0, 0);
+
     onComplete({
       ...profile,
       isConfigured: true

@@ -21,6 +21,7 @@ const TelegramIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
 
 export default function AuthScreen({ onLogin }: AuthScreenProps) {
   const [step, setStep] = useState(1);
+  const [studentNameInput, setStudentNameInput] = useState('');
   const [currentSlogan, setCurrentSlogan] = useState(() => {
     const index = Math.floor(Math.random() * MOTIVATIONAL_SLOGANS.length);
     return MOTIVATIONAL_SLOGANS[index];
@@ -45,9 +46,8 @@ export default function AuthScreen({ onLogin }: AuthScreenProps) {
   };
 
   const handleFinish = () => {
-    // Call onLogin to authenticate student under a default identifier.
-    // This allows them to log in instantly and proceed to the Onboarding Profile page.
-    onLogin("بطل_الثانوية");
+    const finalName = studentNameInput.trim() || 'بطل_الثانوية';
+    onLogin(finalName);
   };
 
   return (
@@ -218,9 +218,28 @@ export default function AuthScreen({ onLogin }: AuthScreenProps) {
                     <Sparkles className="w-10 h-10 animate-pulse text-amber-500" />
                   </div>
                   <h3 className="text-xl sm:text-2xl font-extrabold text-slate-800 leading-relaxed px-2">
-                    رسالة طمأنينة ودعم لقلبك 💡🤍
+                    تسجيل بيانات البطل الجدد 📝🎓
                   </h3>
-                  <div className="bg-gradient-to-l from-amber-50/70 via-orange-50/40 to-amber-50/70 border-2 border-dashed border-amber-300 p-6 rounded-3xl max-w-md mx-auto leading-relaxed text-right md:text-center text-slate-800 font-black text-sm sm:text-base shadow-sm">
+
+                  {/* Real Student Name Input Field */}
+                  <div className="max-w-md mx-auto text-right space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-inner">
+                    <label htmlFor="student-login-name-input" className="block text-xs font-black text-slate-700">
+                      ادخل اسمك الكريم للتسجيل بحسابك على الموقع:
+                    </label>
+                    <input
+                      id="student-login-name-input"
+                      type="text"
+                      value={studentNameInput}
+                      onChange={(e) => setStudentNameInput(e.target.value)}
+                      placeholder="مثال: أحمد محمد علي"
+                      className="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    />
+                    <p className="text-[11px] text-slate-400 font-bold">
+                      * سَيتم التسجيل باسمك الحقيقي في قائمة المتصدرين وقاعدة بيانات الطلاب المسجلين بالمنصة.
+                    </p>
+                  </div>
+
+                  <div className="bg-gradient-to-l from-amber-50/70 via-orange-50/40 to-amber-50/70 border-2 border-dashed border-amber-300 p-4 rounded-2xl max-w-md mx-auto leading-relaxed text-right md:text-center text-slate-800 font-black text-xs sm:text-sm shadow-sm">
                      "حتى لو ملحقتش الكلية اللي كان نفسك فيها.. أكيد ربنا هيعوضك بكلية أحسن منها! ربنا دايماً كاتبلك الخير والتفوق الحقيقي في المكان الأنسب ليك 🤲❤️"
                   </div>
 
@@ -234,7 +253,7 @@ export default function AuthScreen({ onLogin }: AuthScreenProps) {
                       className="w-4 h-4 text-emerald-500 border-slate-300 rounded focus:ring-emerald-400 accent-emerald-500 cursor-not-allowed" 
                     />
                     <label htmlFor="remember-login-check-final" className="cursor-pointer text-slate-700 select-none">
-                      تذكر بياناتي وحفظها تلقائياً بالمتصفح 💾🔐
+                      تذكر بياناتي وحفظ الحساب تلقائياً 💾🔐
                     </label>
                   </div>
                 </motion.div>

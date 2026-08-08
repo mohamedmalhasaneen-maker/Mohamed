@@ -57,7 +57,10 @@ import {
   Moon,
   Mic,
   MicOff,
-  Lightbulb
+  Lightbulb,
+  Home,
+  LayoutGrid,
+  CheckSquare
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -99,7 +102,7 @@ export default function App() {
   const [challenges, setChallenges] = useState<StudyChallenge[]>(INITIAL_CHALLENGES);
   const [ventMessages, setVentMessages] = useState<Message[]>([]);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
-  const [currentTab, setCurrentTab] = useState<'dashboard' | 'tasks' | 'study' | 'timer' | 'vent' | 'badges' | 'profile'>(() => {
+  const [currentTab, setCurrentTab] = useState<'dashboard' | 'menu' | 'tasks' | 'study' | 'timer' | 'vent' | 'badges' | 'profile'>(() => {
     return (localStorage.getItem('thanaweya_last_tab') as any) || 'dashboard';
   });
   
@@ -666,19 +669,12 @@ export default function App() {
       ? Number(localStorage.getItem('thanaweya_focus_study_minutes')) 
       : 25;
     
-    // Balanced baseline representing prior progress
-    let baselinePomodoros = [3, 4, 3, 5, 2, 4, 0];
-    if (profile?.branch === 'science') {
-      baselinePomodoros = [4, 5, 3, 6, 4, 3, 1];
-    } else if (profile?.branch === 'math') {
-      baselinePomodoros = [5, 4, 4, 5, 5, 2, 0];
-    } else if (profile?.branch === 'literature') {
-      baselinePomodoros = [3, 3, 4, 3, 4, 4, 2];
-    }
+    // Default baseline for new users is zero completed pomodoros
+    let baselinePomodoros = [0, 0, 0, 0, 0, 0, 0];
 
     return DAYS_ARABIC.map((dayName, idx) => {
       let pomodoros = baselinePomodoros[idx];
-      let tasks = Math.max(1, Math.round(pomodoros * 0.7));
+      let tasks = 0;
       
       if (idx === mappedTodayIndex) {
         pomodoros = todayActualPomodoros;
@@ -714,8 +710,8 @@ export default function App() {
 
   const handleProfileComplete = (newProfile: StudentProfile) => {
     setProfile(newProfile);
-    // Add 15 quick points for signing up
-    setPoints((prev) => prev + 15);
+    // User starts with 0 achievements and points for the first time
+    setPoints(0);
     logActivity('auth', `تم إعداد ملفك الشخصي بنجاح يا بطل! الكلية الهدف: ${newProfile.dreamCollege || 'مستقبل رائع'} 🎓✨`);
   };
 
@@ -1296,30 +1292,38 @@ export default function App() {
       {/* Main Content Dashboard layout */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        {/* Navigation Tabs bar */}
-        <div className="flex border-b border-slate-200 mb-8 overflow-x-auto no-scrollbar scroll-smooth gap-2">
-          {[
-            { id: 'dashboard', label: 'الرئيسية والإحصائيات 📊' },
-            { id: 'study', label: 'رفيق المذاكرة التفاعلي 📖✨' },
-            { id: 'tasks', label: 'لوحة المهام الذكية 📚' },
-            { id: 'timer', label: 'مؤقت بومودورو ⏱️' },
-            { id: 'vent', label: 'ركن الفضفضة والتأمل 🧠' },
-            { id: 'badges', label: 'مكافآتي وشاراتي 🏆' },
-            { id: 'profile', label: 'البيانات الشخصية 👤' }
-          ].map((tab) => (
+        {/* Top Back-to-Main Button Header on sub-pages */}
+        {currentTab !== 'dashboard' && (
+          <div className="mb-8 flex items-center justify-between gap-3 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-50 border border-amber-300/80 p-3.5 px-5 rounded-2xl shadow-sm">
+            <div className="flex items-center gap-2 text-right">
+              <span className="text-xs font-black text-amber-900 bg-amber-100/90 px-3 py-1.5 rounded-xl border border-amber-200/80 flex items-center gap-1.5">
+                <span className="text-slate-600 font-bold">أنت الآن في:</span>
+                <span className="text-amber-900 font-extrabold">
+                  {
+                    currentTab === 'study' ? 'رفيق المذاكرة التفاعلي 📖✨' :
+                    currentTab === 'tasks' ? 'لوحة المهام الذكية 📚' :
+                    currentTab === 'timer' ? 'مؤقت بومودورو ⏱️' :
+                    currentTab === 'vent' ? 'ركن الفضفضة والتأمل 🧠' :
+                    currentTab === 'badges' ? 'مكافآتي وشاراتي 🏆' :
+                    currentTab === 'profile' ? 'البيانات الشخصية 👤' : ''
+                  }
+                </span>
+              </span>
+            </div>
+            
             <button
-              key={tab.id}
-              onClick={() => setCurrentTab(tab.id as any)}
-              className={`py-3 px-5 text-sm font-bold border-b-2 whitespace-nowrap transition-all cursor-pointer ${
-                currentTab === tab.id
-                  ? 'border-amber-500 text-amber-600 bg-amber-50/45 rounded-t-xl'
-                  : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
-              }`}
+              type="button"
+              onClick={() => {
+                setCurrentTab('dashboard');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-xs sm:text-sm px-4 py-2 rounded-xl shadow transition transform hover:scale-[1.02] cursor-pointer shrink-0"
             >
-              {tab.label}
+              <Home className="w-4 h-4" />
+              <span>الشاشة الرئيسية 🏠</span>
             </button>
-          ))}
-        </div>
+          </div>
+        )}
 
         {/* Motivational / Morning notification ribbon pop */}
         <AnimatePresence>
@@ -1432,6 +1436,162 @@ export default function App() {
         {/* --- MAIN TABS ROUTING --- */}
         <div id="tab-holder" className="grid grid-cols-1 gap-8">
 
+          {/* TAB: STANDALONE MENU PAGE (قائمة الأقسام والتطبيقات) */}
+          {currentTab === 'menu' && (
+            <div className="space-y-8 animate-fadeIn">
+              {/* Menu Header Card */}
+              <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div className="space-y-2 relative z-10 text-right">
+                  <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3.5 py-1 rounded-full text-xs font-bold text-amber-100">
+                    <LayoutGrid className="w-3.5 h-3.5" />
+                    <span>دليل أقسام وتطبيقات المنصة الشامل 🚀</span>
+                  </div>
+                  <h2 className="text-2xl sm:text-3xl font-black font-display">
+                    قائمة أقسام رفيق الثانوية الذكي 📋
+                  </h2>
+                  <p className="text-amber-100 text-xs sm:text-sm max-w-xl font-medium leading-relaxed">
+                    اضغط على أي قسم أدناه للانتقال الفوري والمباشر إليه.. كل الأدوات المخصصة لتفوقك في مكان واحد!
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentTab('dashboard');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="bg-white text-slate-900 hover:bg-amber-50 transition px-5 py-3 rounded-2xl font-black text-xs sm:text-sm shadow-lg flex items-center gap-2 cursor-pointer shrink-0 border border-white/40 transform hover:scale-105"
+                >
+                  <Home className="w-4 h-4 text-amber-600" />
+                  <span>الرجوع للصفحة الرئيسية 🏠</span>
+                </button>
+              </div>
+
+              {/* Grid of All Standalone Menu Items */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[
+                  {
+                    id: 'study',
+                    title: 'رفيق المذاكرة التفاعلي 📖✨',
+                    subtitle: 'دروس، شرح بالذكاء الاصطناعي، وخرائط ذهنية',
+                    desc: 'اقرأ الدروس الملخصة لكل موادك، استخدم الشرح الذكي التفاعلي بالصوت والصورة، ونظم أفكارك بالخرائط الذهنية.',
+                    badge: 'مميز ومحبوب ⭐',
+                    badgeBg: 'bg-amber-100 text-amber-800',
+                    iconBg: 'bg-gradient-to-br from-amber-500 to-orange-500 text-white',
+                    icon: BookOpen,
+                    borderColor: 'border-amber-200 hover:border-amber-400 hover:shadow-amber-100',
+                    btnBg: 'bg-amber-500 hover:bg-amber-600 text-white'
+                  },
+                  {
+                    id: 'tasks',
+                    title: 'لوحة المهام الذكية 📚',
+                    subtitle: 'إدارة وتخطيط جدول المذاكرة اليومي',
+                    desc: 'أضف دروسك ومهامك اليومية بالصوت أو الكتابة، تابع نسبة انجازك الأسبوعية، واكسب طاقات عند إنهاء كل مهمة.',
+                    badge: 'أساسي يومياً 🎯',
+                    badgeBg: 'bg-emerald-100 text-emerald-800',
+                    iconBg: 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white',
+                    icon: CheckSquare,
+                    borderColor: 'border-emerald-200 hover:border-emerald-400 hover:shadow-emerald-100',
+                    btnBg: 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                  },
+                  {
+                    id: 'timer',
+                    title: 'مؤقت بومودورو ⏱️',
+                    subtitle: 'جلسات تركيز بدون تشتيت واستراحات ذكية',
+                    desc: 'اضبط مؤقت المذاكرة (25 دقيقة تركيز + 5 استراحة)، شغّل أصوات الخلفية المهدئة، وضع نفسك في وضع التركيز العميق.',
+                    badge: 'زيادة الإنتاجية ⚡',
+                    badgeBg: 'bg-rose-100 text-rose-800',
+                    iconBg: 'bg-gradient-to-br from-rose-500 to-red-500 text-white',
+                    icon: Clock,
+                    borderColor: 'border-rose-200 hover:border-rose-400 hover:shadow-rose-100',
+                    btnBg: 'bg-rose-500 hover:bg-rose-600 text-white'
+                  },
+                  {
+                    id: 'vent',
+                    title: 'ركن الفضفضة والتأمل 🧠',
+                    subtitle: 'تفريغ الضغط النفسي مع الذكاء الاصطناعي',
+                    desc: 'فضفض بما في قلبك من توتر أو مكسل، وتلقَ دعماً معنوياً وتوجيهاً إيجابياً دافئاً يشحن همتك فوراً.',
+                    badge: 'راحة ونقاء 🤍',
+                    badgeBg: 'bg-indigo-100 text-indigo-800',
+                    iconBg: 'bg-gradient-to-br from-indigo-500 to-purple-500 text-white',
+                    icon: Brain,
+                    borderColor: 'border-indigo-200 hover:border-indigo-400 hover:shadow-indigo-100',
+                    btnBg: 'bg-indigo-500 hover:bg-indigo-600 text-white'
+                  },
+                  {
+                    id: 'badges',
+                    title: 'مكافآتي وشاراتي 🏆',
+                    subtitle: 'حصالة النقاط والأوسمة والتحديات الجماعية',
+                    desc: 'استعرض مستواك التنافسي، افتح الأوسمة الشرفية، وانضم للتحديات الجماعية مع زملائك الأبطال.',
+                    badge: 'تحفيز وتحدي 🔥',
+                    badgeBg: 'bg-yellow-100 text-yellow-800',
+                    iconBg: 'bg-gradient-to-br from-yellow-500 to-amber-500 text-white',
+                    icon: Trophy,
+                    borderColor: 'border-yellow-200 hover:border-yellow-400 hover:shadow-yellow-100',
+                    btnBg: 'bg-amber-500 hover:bg-amber-600 text-white'
+                  },
+                  {
+                    id: 'profile',
+                    title: 'البيانات الشخصية 👤',
+                    subtitle: 'تعديل الشعبة، الهدف وتاريخ الامتحانات',
+                    desc: 'حدث معلوماتك، كليتك المفضلة، الصورة الشخصية، وتأكد من حفظ بياناتك بأمان في أي وقت.',
+                    badge: 'إعدادات الحساب ⚙️',
+                    badgeBg: 'bg-sky-100 text-sky-800',
+                    iconBg: 'bg-gradient-to-br from-sky-500 to-blue-500 text-white',
+                    icon: User,
+                    borderColor: 'border-sky-200 hover:border-sky-400 hover:shadow-sky-100',
+                    btnBg: 'bg-sky-500 hover:bg-sky-600 text-white'
+                  }
+                ].map((menuItem) => {
+                  const ItemIcon = menuItem.icon;
+                  return (
+                    <div
+                      key={menuItem.id}
+                      onClick={() => {
+                        setCurrentTab(menuItem.id as any);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className={`bg-white border p-6 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between group transform hover:-translate-y-1 ${menuItem.borderColor}`}
+                    >
+                      <div className="space-y-4 text-right">
+                        <div className="flex items-center justify-between">
+                          <div className={`p-3.5 rounded-2xl ${menuItem.iconBg} shadow-md group-hover:scale-110 transition-transform duration-300`}>
+                            <ItemIcon className="w-6 h-6" />
+                          </div>
+                          <span className={`text-[11px] font-black px-3 py-1 rounded-full ${menuItem.badgeBg}`}>
+                            {menuItem.badge}
+                          </span>
+                        </div>
+
+                        <div>
+                          <h3 className="text-lg font-black text-slate-800 font-display group-hover:text-amber-600 transition-colors">
+                            {menuItem.title}
+                          </h3>
+                          <p className="text-xs font-bold text-slate-400 mt-0.5">
+                            {menuItem.subtitle}
+                          </p>
+                          <p className="text-slate-600 text-xs mt-2.5 leading-relaxed font-medium">
+                            {menuItem.desc}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="pt-5 mt-4 border-t border-slate-100 flex items-center justify-between">
+                        <span className="text-xs font-extrabold text-slate-500 group-hover:text-amber-600 transition-colors flex items-center gap-1">
+                          دخول للقسم الآن ⚡
+                        </span>
+                        <div className={`p-2 px-3.5 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-sm transition-all group-hover:translate-x-1 ${menuItem.btnBg}`}>
+                          <span>انتقال تلقائي</span>
+                          <ChevronLeft className="w-4 h-4 rotate-180" />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* TAB: RAFIQ STUDY */}
           {currentTab === 'study' && profile && (
             <div className="animate-fadeIn">
@@ -1443,455 +1603,136 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB 1: DASHBOARD & PROGRESS */}
+          {/* TAB 1: DASHBOARD - SECTION NAMES & LEADERBOARD ONLY */}
           {currentTab === 'dashboard' && (
             <div className="space-y-8 animate-fadeIn">
-              
-              {/* Exam Countdown Banner / Date Controller */}
-              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 relative overflow-hidden flex flex-col lg:flex-row lg:items-center justify-between gap-6" dir="rtl">
-                {/* Decorative background shape */}
-                <div className="absolute top-0 left-0 w-32 h-32 bg-amber-50/40 rounded-br-full -z-10" />
-                
-                <div className="flex items-start gap-4 text-right">
-                  <div className="p-4 bg-amber-50 text-amber-600 rounded-3xl hidden sm:flex items-center justify-center shrink-0">
-                    <Calendar className="w-8 h-8" />
-                  </div>
-                  <div>
-                    <h3 className="text-slate-800 text-lg font-bold font-display flex items-center gap-2">
-                      <span>العد التنازلي للماراثون الكبير 🏆</span>
-                      <span className="text-xs text-slate-400 bg-slate-100 px-3 py-1 rounded-full font-sans font-normal border border-slate-250">ثانوية عامة {new Date().getFullYear()}</span>
-                    </h3>
-                    
-                    {profile?.examDate ? (
-                      <div className="space-y-2 mt-1.5 text-right">
-                        <p className="text-slate-600 text-sm leading-relaxed">
-                          تاريخ أول امتحاناتك تم تحديده يوم <strong className="text-amber-600">{new Date(profile.examDate).toLocaleDateString('ar-EG', { dateStyle: 'long' })}</strong>.
-                        </p>
-                        {getDaysUntilExam(profile.examDate) !== null && (
-                          <div className="bg-gradient-to-l from-orange-50 to-amber-50 border-r-4 border-amber-500 p-3.5 rounded-2xl shadow-sm">
-                            <p className="text-slate-800 text-sm font-extrabold leading-loose">
-                              🎯 كمل يا بطل فاضلك <strong className="text-orange-600 text-lg font-black font-sans mx-1">{getDaysUntilExam(profile.examDate)} أيام</strong> علي تحقيق حلمك، متشغلش بالك بحد أبداً.. كمل انت قدها متخليش حد يحبطك! 💪🌟
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <p className="text-slate-500 text-sm mt-1 leading-relaxed">لم تقم بتحديد تاريخ أول امتحاناتك بعد. حدده الآن لتشغيل العد التنازلي التلقائي!</p>
-                    )}
-                    
-                    {/* Encouraging dynamic Egyptian message based on remaining days */}
-                    <p className="text-xs text-slate-400 mt-2 italic flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-yellow-500 shrink-0" />
-                      <span>
-                        {(() => {
-                          const days = getDaysUntilExam(profile?.examDate);
-                          if (days === null) return 'خطوة بخطوة يا بطل، بكرة هتوصل لقمة طموحك وتفرح!';
-                          if (days > 30) return 'المسافة لسه كويسة وعندك وقت تقفل كل المواد القديمة والجديدة بذكاء! شد الحيل!';
-                          if (days > 15) return 'الأيام بتجري لكن البطل ذكي بيعافر في كل دقيقة! كمل بومودورو وضاعف تركيزك هانت!';
-                          if (days > 7) return 'أسبوعين على امتحاناتك! المراجعات وحل الامتحانات دلوقتي كنز حقيقي.. اضغط بقوة يا وحش!';
-                          if (days > 0) return 'خلاص الامتحانات على الأبواب! أيام قليلة وسينتهي هذا التعب بالفرح القريب! ثق بربي وتوفيقك!';
-                          if (days === 0) return 'اليوم هو اليوم الكبير! خذ نفساً عميقاً، اقرأ قرانك وادعُ ربك.. في ضهرك دايماً!';
-                          return 'الماراثون بدأ بالفعل! ثق بنفسك في اللجان واصنع كبطل قصتك التاريخية!';
-                        })()}
-                      </span>
-                    </p>
-                  </div>
-                </div>
 
-                <div className="flex flex-col sm:flex-row items-center gap-4 shrink-0 w-full lg:w-auto">
-                  <div className="font-mono text-center bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/50 p-4 px-6 rounded-2xl w-full sm:w-auto shrink-0">
-                    <span className="block text-slate-400 text-[10px] font-sans font-bold uppercase tracking-wider">الأيام المتبقية</span>
-                    <span className="text-3 shadow-sm font-extrabold text-orange-600 block text-3xl">
-                      {getDaysUntilExam(profile?.examDate) !== null ? getDaysUntilExam(profile?.examDate) : '⏱️'}
-                    </span>
-                    <span className="block text-[11px] text-slate-500 font-sans mt-0.5 font-bold">يوماً حاسماً</span>
+              {/* Welcome Header Card */}
+              <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 rounded-2xl sm:rounded-3xl p-5 sm:p-7 text-white shadow-lg relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="space-y-1.5 relative z-10 text-right">
+                  <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-amber-100">
+                    <LayoutGrid className="w-3.5 h-3.5" />
+                    <span>الشاشة الرئيسية 🚀</span>
                   </div>
-
-                  {/* Inline Date Modifier Input */}
-                  <div className="flex flex-col gap-1.5 w-full sm:w-auto text-right">
-                    <label className="text-xs text-slate-500 font-bold block">تغيير تاريخ الامتحانات 📅:</label>
-                    <input
-                      type="date"
-                      value={profile?.examDate || ''}
-                      onChange={(e) => {
-                        if (e.target.value) {
-                          setProfile({ ...profile!, examDate: e.target.value });
-                        }
-                      }}
-                      className="p-2.5 rounded-xl border border-slate-200 text-sm focus:border-amber-500 focus:outline-none bg-slate-50 font-sans cursor-pointer text-right w-full sm:w-44 font-semibold text-slate-700"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Stats bento layout */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                
-                {/* Visual Progress Doughnut Equivalent */}
-                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-slate-400 text-xs font-bold uppercase tracking-wider">شريط تقدم اليوم</h3>
-                    <div className="flex items-baseline justify-between mt-3">
-                      <span className="text-3xl font-extrabold text-slate-800 font-mono">{dailyProgressPercent}%</span>
-                      <span className="text-xs text-slate-400 font-medium">({completedTasksCount} من أصل {totalTasksCount} مهام متكاملة)</span>
-                    </div>
-                  </div>
-                  
-                  {/* Custom horizontal progressive block */}
-                  <div className="mt-6 space-y-2">
-                    <div className="h-4 bg-slate-100 rounded-full overflow-hidden">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${dailyProgressPercent}%` }}
-                        className="h-full bg-gradient-to-l from-amber-500 to-orange-500 rounded-full"
-                      />
-                    </div>
-                    <p className="text-xs font-semibold text-amber-600 mt-2 text-center">
-                      {dailyProgressPercent === 100 
-                        ? 'أنت مذهل تماماً! أنهيت كل المطلوب منك اليوم 🌟'
-                        : dailyProgressPercent >= 50
-                        ? 'أكثر من النصف مكتمل.. واصل الضغط يا بطل!'
-                        : totalTasksCount > 0 
-                        ? 'بداية رائعة، خطوة تلو الأخرى وهتوصل لحصاد القمة!'
-                        : 'لم تضف أي مهام لجدولك اليوم بعد. ابدأ الآن!'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* High School Energy Rank */}
-                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-slate-400 text-xs font-bold uppercase tracking-wider">رتبة بطل الثانوية</h3>
-                    <div className="flex items-center gap-3 mt-3">
-                      <div className="h-10 w-10 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center">
-                        <Trophy className="w-5 h-5 text-amber-500" />
-                      </div>
-                      <span className="text-xl font-bold text-slate-800">
-                        {points >= 200 ? 'الأسطورة الخارقة الروحية 🌌' : points >= 100 ? 'مقاوم الصعاب والمتاعب 🔥' : 'المقاتل الصاعد 🎯'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-slate-500 mt-4 leading-relaxed bg-slate-50 p-3 rounded-2xl">
-                    كل جلسة بومودورو تعطيك <b>15 نقطة</b> وكل تذكرة مهمة تنجزها تمنحك <b>10 نقاط طاقة</b> تفتح بها شارات فخرية.
+                  <h2 className="text-xl sm:text-2xl font-black font-display">
+                    أهلاً بك في رفيق الثانوية العامة الذكي 🎓✨
+                  </h2>
+                  <p className="text-amber-100 text-xs sm:text-sm max-w-xl font-medium leading-relaxed">
+                    اضغط على أي قسم أدناه للانتقال الكامل إليه، أو تابِع ترتيبك وتحديك في لوحة المتصدرين بالأسفل!
                   </p>
                 </div>
-
-                {/* Quick actions direct paths */}
-                <div className="bg-gradient-to-l from-amber-500 to-orange-500 rounded-3xl p-6 text-white flex flex-col justify-between shadow-lg relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-4 opacity-10">
-                    <Sparkles className="w-24 h-24 text-white" />
-                  </div>
-                  <div>
-                    <h4 className="font-extrabold text-lg text-amber-50 font-display">ركن الفضفضة والتأمل 🧠</h4>
-                    <p className="text-amber-50 text-xs mt-1.5 leading-relaxed">
-                      هل تعاني من توتر الامتحانات؟ لا تحتفظ بضغطك لنفسك. رفيقك الذكي متواجد للاستماع إليك وتخفيف عبء المذاكرة عن قلبك فوراً.
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setCurrentTab('vent')}
-                    className="mt-4 py-2.5 px-4 bg-white/20 hover:bg-white text-white hover:text-orange-600 font-bold rounded-2xl text-xs transition flex items-center justify-center gap-1.5 cursor-pointer border border-white/30"
-                  >
-                    <span>تفريغ وبدء الفضفضة</span>
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                </div>
-
               </div>
 
-              {/* TAB 1.5: Recharts Weekly Statistics Section */}
-              {(() => {
-                const weeklyData = getWeeklyStatsData();
-                const totalWeeklyHours = Math.round(weeklyData.reduce((acc, curr) => acc + curr['ساعات المذاكرة المقدرة'], 0) * 10) / 10;
-                const totalWeeklyPomodoros = weeklyData.reduce((acc, curr) => acc + curr['جلسات بومودورو المنجزة'], 0);
-                const averageDailyHours = Math.round((totalWeeklyHours / 7) * 10) / 10;
-                
-                return (
-                  <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100" dir="rtl">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-50 pb-5 mb-6">
-                      <div className="text-right">
-                        <h3 className="text-lg font-extrabold text-slate-800 font-display flex items-center gap-2">
-                          <TrendingUp className="w-5 h-5 text-amber-500 animate-pulse" />
-                          <span>تطور مجهودك ومذاكرتك على مدار الأسبوع 📊</span>
-                        </h3>
-                        <p className="text-xs text-slate-400 mt-1">تتبع مرن ومباشر لساعات تركيزك وجلسات البومودورو المنجزة</p>
-                      </div>
-
-                      {/* Switch Controls */}
-                      <div className="flex bg-slate-100 p-1 rounded-2xl shrink-0 self-start sm:self-center select-none">
-                        <button
-                          onClick={() => setStatsMetric('hours')}
-                          className={`py-1.5 px-4 rounded-xl font-bold transition-all text-xs cursor-pointer ${
-                            statsMetric === 'hours'
-                              ? 'bg-blue-600 text-white shadow-md'
-                              : 'text-slate-600 hover:text-slate-800'
-                          }`}
-                        >
-                          ساعات المذاكرة ⏱️
-                        </button>
-                        <button
-                          onClick={() => setStatsMetric('pomodoros')}
-                          className={`py-1.5 px-4 rounded-xl font-bold transition-all text-xs cursor-pointer ${
-                            statsMetric === 'pomodoros'
-                              ? 'bg-amber-500 text-white shadow-md'
-                              : 'text-slate-600 hover:text-slate-800'
-                          }`}
-                        >
-                          جلسات البومودورو 🔥
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Metric Summary Widgets Group */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100/50 text-right flex flex-col justify-between">
-                        <span className="text-[11px] font-bold text-slate-400 block mb-1">مجموع ساعات تركيزك هذا الأسبوع ⏱️</span>
-                        <span className="text-2xl font-extrabold text-blue-600 font-mono block leading-none p-1">{totalWeeklyHours} <span className="text-xs font-sans font-bold text-slate-500">ساعة</span></span>
-                      </div>
-                      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100/50 text-right flex flex-col justify-between">
-                        <span className="text-[11px] font-bold text-slate-400 block mb-1">إجمالي جلسات الـ بومودورو الفعالة 🔥</span>
-                        <span className="text-2xl font-extrabold text-amber-600 font-mono block leading-none p-1">{totalWeeklyPomodoros} <span className="text-xs font-sans font-bold text-slate-500">جلسة</span></span>
-                      </div>
-                      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100/50 text-right flex flex-col justify-between">
-                        <span className="text-[11px] font-bold text-slate-400 block mb-1">معدل مذاكرتك اليومي المكافئ 📈</span>
-                        <span className="text-2xl font-extrabold text-emerald-600 font-mono block leading-none p-1">{averageDailyHours} <span className="text-xs font-sans font-bold text-slate-500">ساعة / يوم</span></span>
-                      </div>
-                    </div>
-
-                    {/* Actual Recharts Chart Container */}
-                    <div className="h-[280px] sm:h-[340px] w-full pr-1 font-sans" dir="ltr">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart
-                          data={weeklyData}
-                          margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                        >
-                          <defs>
-                            <linearGradient id="colorMetric" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor={statsMetric === 'hours' ? '#1d4ed8' : '#d97706'} stopOpacity={0.2}/>
-                              <stop offset="95%" stopColor={statsMetric === 'hours' ? '#1d4ed8' : '#d97706'} stopOpacity={0.0}/>
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                          <XAxis 
-                            dataKey="name" 
-                            stroke="#94a3b8" 
-                            fontSize={11} 
-                            fontWeight="semibold"
-                            tickLine={false} 
-                            axisLine={false}
-                            dy={8}
-                          />
-                          <YAxis 
-                            stroke="#94a3b8" 
-                            fontSize={11} 
-                            fontWeight="semibold"
-                            tickLine={false} 
-                            axisLine={false}
-                            dx={-8}
-                          />
-                          <Tooltip 
-                            content={({ active, payload, label }) => {
-                              if (active && payload && payload.length) {
-                                const val = payload[0].value;
-                                return (
-                                  <div className="bg-white/95 backdrop-blur-md border border-slate-100 p-3.5 rounded-2xl shadow-xl text-right font-sans" dir="rtl">
-                                    <p className="text-xs font-extrabold text-slate-800 mb-1">{label}</p>
-                                    <p className="text-xs font-bold" style={{ color: statsMetric === 'hours' ? '#1d4ed8' : '#b45309' }}>
-                                      <span>{statsMetric === 'hours' ? 'ساعات المذاكرة المقدرة' : 'جلسات بومودورو المنجزة'}: </span>
-                                      <span className="font-mono text-sm font-extrabold">{val}</span>
-                                      <span> {statsMetric === 'hours' ? 'ساعة' : 'جلسة'}</span>
-                                    </p>
-                                  </div>
-                                );
-                              }
-                              return null;
-                            }} 
-                          />
-                          <Area 
-                            type="monotone" 
-                            dataKey={statsMetric === 'hours' ? 'ساعات المذاكرة المقدرة' : 'جلسات بومودورو المنجزة'} 
-                            stroke={statsMetric === 'hours' ? '#2563eb' : '#d97706'} 
-                            strokeWidth={3} 
-                            fillOpacity={1} 
-                            fill="url(#colorMetric)" 
-                            activeDot={{ r: 6, strokeWidth: 0 }} 
-                          />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </div>
-                    
-                    {/* Encouraging Feedback based on hours */}
-                    <div className="mt-4 bg-amber-50/40 border border-amber-100/50 p-4 rounded-2xl text-right">
-                      <p className="text-xs text-amber-800 font-bold leading-relaxed flex items-center gap-1.5">
-                        <Sparkles className="w-4 h-4 text-amber-550 shrink-0" />
-                        <span>
-                          {totalWeeklyHours >= 15
-                            ? `يا الله على روعتك يا ${profile?.name || 'بطل'}! أنجزت أكثر من 15 ساعة مذاكرة مركزة هذا الأسبوع. أنت تضع أساساً متيناً لدخول ${profile?.dreamCollege || 'القمة'}. استمر بنظام بومودورو المذهل!`
-                            : totalWeeklyHours >= 5
-                            ? `أداء متزن وجميل يا ${profile?.name || 'بطل'}.. نقترب يومياً من القمة خطوة بخطوة. شد الهمة لرفع الساعات أكثر غداً ونظم بريك البومودورو!`
-                            : `سجلت حتى الآن بداية جيدة يا ${profile?.name || 'بطل'}! المذاكرة بومودورو بومودورو تسهل الصعب وتعمر جدول الأسبوع بالنجاحات.. ابدأ أول دورة تركيز الآن!`}
-                        </span>
-                      </p>
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {/* Grid: Challenges list & active tasks snap */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                
-                {/* Right col: Weekly / Daily Challenges */}
-                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-                  <div className="flex items-center justify-between mb-5">
-                    <h3 className="text-lg font-bold text-slate-800 font-display flex items-center gap-2">
-                      <Flame className="w-5 h-5 text-amber-500" />
-                      <span>تحديات شحن الهمة اليومية</span>
-                    </h3>
-                    <span className="text-xs text-slate-400">نقاط سريعة وفورية</span>
-                  </div>
-
-                  <div className="space-y-4">
-                    {challenges.map((ch) => {
-                      const isComplete = ch.currentCount >= ch.targetCount;
-                      return (
-                        <div 
-                          key={ch.id}
-                          className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ${
-                            ch.isClaimed 
-                              ? 'bg-slate-50/50 border-slate-100 opacity-70' 
-                              : isComplete 
-                              ? 'bg-amber-50/40 border-amber-200' 
-                              : 'bg-white border-slate-100'
-                          }`}
-                        >
-                          <div className="space-y-1">
-                            <h4 className="font-bold text-sm text-slate-800 flex items-center gap-1.5">
-                              <span>{ch.title}</span>
-                              {ch.isClaimed && <span className="text-[10px] bg-emerald-50 text-emerald-600 font-bold px-1.5 py-0.5 rounded-full border border-emerald-100">مكتمل ومستلم</span>}
-                            </h4>
-                            <p className="text-xs text-slate-500 leading-relaxed max-w-sm">{ch.description}</p>
-                            
-                            {/* Tracker status progress line */}
-                            {!ch.isClaimed && (
-                              <div className="flex items-center gap-2 mt-2">
-                                <div className="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                  <div 
-                                    className="h-full bg-amber-500 rounded-full"
-                                    style={{ width: `${(ch.currentCount / ch.targetCount) * 100}%` }}
-                                  />
-                                </div>
-                                <span className="text-[10px] text-slate-400 font-mono font-bold">{ch.currentCount}/{ch.targetCount}</span>
-                              </div>
-                            )}
-                          </div>
-
-                          <div>
-                            {!ch.isClaimed ? (
-                              <button
-                                onClick={() => handleClaimChallenge(ch.id, ch.pointsReward)}
-                                disabled={!isComplete}
-                                className={`py-2 px-4 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
-                                  isComplete 
-                                    ? 'bg-amber-500 hover:bg-amber-600 text-white shadow'
-                                    : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
-                                }`}
-                              >
-                                <Award className="w-3.5 h-3.5" />
-                                <span>استلم {ch.pointsReward} نقطة</span>
-                              </button>
-                            ) : (
-                              <span className="text-xs text-slate-400 font-bold">تم الإنجاز</span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Left col: Focus guidelines & Quick Pomo trigger */}
-                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-800 font-display mb-5 flex items-center gap-2">
-                      <BookOpen className="w-5 h-5 text-amber-500" />
-                      <span>تقنية البومودورو للمذاكرة الذكية 🧠</span>
-                    </h3>
-                    <div className="space-y-4 text-xs text-slate-600 leading-relaxed">
-                      <p>
-                        تعتبر <b>تقنية البومودورو (Pomodoro Technique)</b> هي الطريقة المثلى عالمياً لطلاب الثانوية العامة للتخلص من التشتت والملل، وهي تعمل كالتالي:
-                      </p>
-                      <ul className="list-disc list-inside space-y-2 pr-2">
-                        <li>تحدد المهمة التي تريد مذاكرتها (مثل درس الفيزياء).</li>
-                        <li>تقوم بضبط المؤقت على <b>25 دقيقة</b> للمذاكرة بتركيز كامل دون فتح الهاتف إطلاقاً.</li>
-                        <li>بعد انتهاء الـ 25 دقيقة، تأخذ استراحة إجبارية لمدة <b>5 دقائق</b> لتنفس العقل.</li>
-                        <li>كرر هذه الدورة أربع مرات ثم خذ استراحة أطول.</li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  <div className="mt-8 pt-6 border-t border-slate-100 flex justify-between items-center">
-                    <span className="text-xs text-slate-400">جاهز لبدء دورة تركيز جديدة؟</span>
-                    <button
-                      onClick={() => setCurrentTab('timer')}
-                      className="py-2.5 px-5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5 transition cursor-pointer"
-                    >
-                      <Clock className="w-4 h-4" />
-                      <span>افتح شاشة المؤقت</span>
-                    </button>
-                  </div>
-                </div>
-
-              </div>
-
-              {/* Group Study Challenges & Leaderboard Section */}
-              <GroupChallenges 
-                userWeeklyPomodoros={getWeeklyStatsData().reduce((acc, curr) => acc + curr['جلسات بومودورو المنجزة'], 0)}
-                userName={profile?.name || 'بطل'}
-                userBranch={profile?.branch || 'science'}
-                onAddPoints={(amount) => setPoints(prev => prev + amount)}
-                onAddActivityLog={logActivity}
-              />
-
-              {/* Subject Mind Map Section */}
-              <SubjectMindMap branch={profile.branch} tasks={tasks} />
-
-              {/* Activity Log Feed Section */}
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 mt-8" dir="rtl">
-                <div className="flex items-center justify-between mb-5 select-none">
-                  <h3 className="text-lg font-extrabold text-slate-800 font-display flex items-center gap-2.5">
-                    <TrendingUp className="w-5 h-5 text-orange-500" />
-                    <span>لوحة النشاط التاريخي ومسيرة البطل 📜</span>
+              {/* Section Names Grid (قائمة الأقسام فقط) */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-right">
+                  <h3 className="text-base sm:text-lg font-black text-slate-800 font-display flex items-center gap-2">
+                    <LayoutGrid className="w-5 h-5 text-amber-500" />
+                    <span>قائمة أقسام وتطبيقات المنصة 📋</span>
                   </h3>
-                  <span className="text-xs font-semibold text-slate-400 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">سجل الأنشطة المحفوظ تلقائياً</span>
+                  <span className="text-[11px] font-bold text-slate-400">اضغط لدخول القسم فوراً</span>
                 </div>
 
-                {activityLogs && activityLogs.length > 0 ? (
-                  <div className="relative border-r-2 border-slate-100 pr-5 mr-1.5 space-y-4 py-2 max-h-96 overflow-y-auto">
-                    {activityLogs.map((log) => {
-                      return (
-                        <div key={log.id} className="relative flex items-start gap-3 text-right">
-                          {/* Dot item indicator icon */}
-                          <div className={`absolute -right-[24px] top-1.5 w-3.3 h-3.3 rounded-full border-2 ${
-                            log.type === 'auth' ? 'bg-indigo-500 border-indigo-100' :
-                            log.type === 'task_complete' ? 'bg-emerald-500 border-emerald-100' :
-                            log.type === 'task_add' ? 'bg-orange-400 border-orange-100' :
-                            log.type === 'pomodoro' ? 'bg-amber-500 border-amber-100' :
-                            log.type === 'badge_unlock' ? 'bg-yellow-500 border-yellow-100' : 'bg-pink-500 border-pink-100'
-                          } w-3 h-3`} />
-                          
-                          <div className="bg-slate-50 rounded-2xl p-3 px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 w-full border border-slate-100">
-                            <span className="text-xs font-semibold text-slate-700 leading-relaxed">{log.description}</span>
-                            <span className="text-[10px] text-slate-400 font-mono font-bold shrink-0 self-end sm:self-center bg-white px-2 py-0.5 rounded-md border border-slate-100/50">{log.timestamp}</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                  {[
+                    {
+                      id: 'study',
+                      title: '📖 رفيق المذاكرة التفاعلي',
+                      subtitle: 'دروس وشرح بالذكاء الاصطناعي وخرائط ذهنية',
+                      iconBg: 'bg-amber-500 text-white',
+                      icon: BookOpen,
+                      borderColor: 'border-amber-200 hover:border-amber-400 hover:shadow-amber-100',
+                      btnBg: 'bg-amber-500 text-white'
+                    },
+                    {
+                      id: 'tasks',
+                      title: '📚 لوحة المهام الذكية',
+                      subtitle: 'تخطيط وإدارة جدول المذاكرة اليومي',
+                      iconBg: 'bg-emerald-500 text-white',
+                      icon: CheckSquare,
+                      borderColor: 'border-emerald-200 hover:border-emerald-400 hover:shadow-emerald-100',
+                      btnBg: 'bg-emerald-500 text-white'
+                    },
+                    {
+                      id: 'timer',
+                      title: '⏱️ مؤقت بومودورو',
+                      subtitle: 'جلسات تركيز بدون تشتيت واستراحات',
+                      iconBg: 'bg-rose-500 text-white',
+                      icon: Clock,
+                      borderColor: 'border-rose-200 hover:border-rose-400 hover:shadow-rose-100',
+                      btnBg: 'bg-rose-500 text-white'
+                    },
+                    {
+                      id: 'vent',
+                      title: '🧠 ركن الفضفضة والتأمل',
+                      subtitle: 'تفريغ التوتر ودعم معنوي بالذكاء الاصطناعي',
+                      iconBg: 'bg-indigo-500 text-white',
+                      icon: Brain,
+                      borderColor: 'border-indigo-200 hover:border-indigo-400 hover:shadow-indigo-100',
+                      btnBg: 'bg-indigo-500 text-white'
+                    },
+                    {
+                      id: 'badges',
+                      title: '🏆 مكافآتي وشاراتي',
+                      subtitle: 'حصالة النقاط والأوسمة والتحديات',
+                      iconBg: 'bg-yellow-500 text-white',
+                      icon: Trophy,
+                      borderColor: 'border-yellow-200 hover:border-yellow-400 hover:shadow-yellow-100',
+                      btnBg: 'bg-amber-500 text-white'
+                    },
+                    {
+                      id: 'profile',
+                      title: '👤 البيانات الشخصية',
+                      subtitle: 'تعديل الشعبة والهدف وإعدادات الحساب',
+                      iconBg: 'bg-sky-500 text-white',
+                      icon: User,
+                      borderColor: 'border-sky-200 hover:border-sky-400 hover:shadow-sky-100',
+                      btnBg: 'bg-sky-500 text-white'
+                    }
+                  ].map((menuItem) => {
+                    const ItemIcon = menuItem.icon;
+                    return (
+                      <div
+                        key={menuItem.id}
+                        onClick={() => {
+                          setCurrentTab(menuItem.id as any);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className={`bg-white border p-3.5 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer flex items-center justify-between gap-3 group transform hover:-translate-y-0.5 ${menuItem.borderColor}`}
+                      >
+                        <div className="flex items-center gap-3 text-right">
+                          <div className={`p-2.5 rounded-xl ${menuItem.iconBg} shadow-sm shrink-0 group-hover:scale-105 transition-transform`}>
+                            <ItemIcon className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-black text-slate-800 font-display group-hover:text-amber-600 transition-colors">
+                              {menuItem.title}
+                            </h3>
+                            <p className="text-[11px] font-bold text-slate-400">
+                              {menuItem.subtitle}
+                            </p>
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="p-8 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                    <p className="text-xs font-bold text-slate-400">لا توجد سجلات أنشطة لعرضها حتى الآن يا بطل. ابدأ المذاكرة والإنجاز لشحن همتك!</p>
-                  </div>
-                )}
+
+                        <div className={`p-1.5 px-3 rounded-lg text-xs font-black flex items-center gap-1 shadow-sm shrink-0 ${menuItem.btnBg}`}>
+                          <span>انتقال</span>
+                          <ChevronLeft className="w-3.5 h-3.5 rotate-180" />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Leaderboard Section (لوحة المتصدرين وتحديات الدفعات) */}
+              <div className="pt-2">
+                <GroupChallenges 
+                  userWeeklyPomodoros={getWeeklyStatsData().reduce((acc, curr) => acc + curr['جلسات بومودورو المنجزة'], 0)}
+                  userName={profile?.name || 'بطل'}
+                  userBranch={profile?.branch || 'science'}
+                  onAddPoints={(amount) => setPoints(prev => prev + amount)}
+                  onAddActivityLog={logActivity}
+                />
               </div>
 
             </div>
